@@ -11,7 +11,8 @@ hungryman:
     service:
       url:  http://hungryman.perfect300rock.com/api/availability
   loadTest:
-    searchesToCreate: 500
+    searchesToCreate: 3000
+    requestDelay: 30ms
     
 reactive:
   feign:

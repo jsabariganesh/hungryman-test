@@ -2,6 +2,7 @@ package com.java.example.tanzu.hungryman.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -23,6 +24,9 @@ public class LoadTester extends SpringBaseTest
 {
 	@Value("${hungryman.loadTest.searchesToCreate:100}")
 	protected int searchesToCreate;
+	
+	@Value("${hungryman.loadTest.requestDelay:100ms}")
+	protected Duration requestDelay;
 	
 	protected Search createRandomSearch()
 	{
@@ -46,7 +50,8 @@ public class LoadTester extends SpringBaseTest
 		 */
 		final Flux<Search> searches = Flux.generate((SynchronousSink<Search> synchronousSink) -> {
 			   synchronousSink.next(createRandomSearch());
-			});
+			})
+			.delayElements(requestDelay);
 		
 		
 		// Send the searches and collect them
@@ -57,7 +62,8 @@ public class LoadTester extends SpringBaseTest
 		.flatMap(search -> 
 		{
 			return searchClient.addSearch(search);
-		}).collectList().block();
+		})
+		.collectList().block();
 				
 		assertEquals(searchesToCreate, newSearches.size());
 		
@@ -93,7 +99,9 @@ public class LoadTester extends SpringBaseTest
 				return Mono.empty();
 			});
 			
-		}).collectList().block();
+		})
+		.delayElements(requestDelay)
+		.collectList().block();
 		
 	}
 }
